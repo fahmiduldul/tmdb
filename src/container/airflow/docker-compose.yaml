@@ -19,7 +19,7 @@ services:
   airflow-init:
     image: apache/airflow:2.2.3
     environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@host.docker.internal/postgres
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@db/postgres
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
     command: >
       bash -c "airflow db init && airflow users create --username airflow --firstname airflow --lastname airflow --role Admin --email airflow@airflow.com -p airflow"
