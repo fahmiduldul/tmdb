@@ -7,9 +7,6 @@ from google.cloud.dataproc_v1.types import PySparkBatch, EnvironmentConfig
 
 PROJECT_ID = "de-porto"
 
-def load_to_bq(**kwargs):
-    ti = kwargs["ti"]
-
 
 with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
 
@@ -21,7 +18,9 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         region="asia-southeast1",
         batch_id=f"movies-{dt.datetime.now().timestamp()}",
         batch={
-            "main_python_file_uri": "gs://de-porto/qoala/script/movies_table.py"
+          "pysparkBatch": {
+            "mainPythonFileUri": "gs://de-porto/qoala/script/movies_table.py"
+          }
         }
     )
 
@@ -31,7 +30,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         region="asia-southeast1",
         batch_id=f"movies-{dt.datetime.now().timestamp()}",
         batch={
-            "main_python_file_uri": "gs://de-porto/qoala/script/series_table.py"
+            "pysparkBatch": {"main_python_file_uri": "gs://de-porto/qoala/script/series_table.py"}
         }
     )
 
@@ -41,7 +40,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         region="asia-southeast1",
         batch_id=f"movies-{dt.datetime.now().timestamp()}",
         batch={
-            "main_python_file_uri": "gs://de-porto/qoala/script/dimension_tables.py"
+            "pysparkBatch": {"main_python_file_uri": "gs://de-porto/qoala/script/dimension_tables.py"}
         }
     )
 
