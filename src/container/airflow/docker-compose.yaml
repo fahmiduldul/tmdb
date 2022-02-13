@@ -38,4 +38,4 @@ services:
     volumes:
       - ./volumes/postgres:/var/lib/postgresql/data
     extra_hosts:
-      - "ost.docker.internal:host-gateway"
+      - "host.docker.internal:host-gateway"
