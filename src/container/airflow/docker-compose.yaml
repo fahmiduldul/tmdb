@@ -23,6 +23,8 @@ services:
       - AIRFLOW__CORE__LOAD_EXAMPLES=false
     command: >
       bash -c "airflow db init && airflow users create --username airflow --firstname airflow --lastname airflow --role Admin --email airflow@airflow.com -p airflow"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - db
 
@@ -35,3 +37,5 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./volumes/postgres:/var/lib/postgresql/data
+    extra_hosts:
+      - "ost.docker.internal:host-gateway"
