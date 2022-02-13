@@ -14,6 +14,8 @@ MOVIES_BATCH_CONFIG = {
 
 with DAG("tmdb", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
 
+    extract = DummyOperator(dag="dummy")
+
     movies_task = DataprocCreateBatchOperator(
         project_id=PROJECT_ID,
         region="asia-southeast1",
@@ -40,3 +42,5 @@ with DAG("tmdb", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
             "main_python_file_uri": "gs://de-porto/qoala/script/dimension_tables.py"
         }
     )
+
+    extract >> [dimension_task, movies_task, series_task]
