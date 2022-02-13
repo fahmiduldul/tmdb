@@ -26,8 +26,8 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
                 "disk_config": {"boot_disk_type": "pd-standard", "boot_disk_size_gb": 500},
             },
             "worker_config": {
-                "num_instances": 3,
-                "machine_type_uri": "n1-standard-2",
+                "num_instances": 2,
+                "machine_type_uri": "n1-standard-4",
                 "disk_config": {"boot_disk_type": "pd-standard", "boot_disk_size_gb": 500},
             },
         }
@@ -36,7 +36,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     movies_task = DataprocSubmitJobOperator(
         task_id="movies_transform",
         project_id=PROJECT_ID,
-        region="asia-southeast1",
+        region=REGION,
         job={
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
@@ -47,7 +47,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     series_task = DataprocSubmitJobOperator(
         task_id="series_transform",
         project_id=PROJECT_ID,
-        region="asia-southeast1",
+        region=REGION,
         job={
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
@@ -58,7 +58,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     dimension_task = DataprocSubmitJobOperator(
         task_id="dimension_transform",
         project_id=PROJECT_ID,
-        region="asia-southeast1",
+        region=REGION,
         job={
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
@@ -69,5 +69,6 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     delete_cluster = DataprocDeleteClusterOperator(
         task_id="delete_cluster", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
     )
+
 
     extract >> create_cluster >> [dimension_task, movies_task, series_task] >> delete_cluster
