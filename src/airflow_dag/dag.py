@@ -37,7 +37,6 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         task_id="movies_transform",
         project_id=PROJECT_ID,
         region="asia-southeast1",
-        job_name="movies",
         job={
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
@@ -49,7 +48,6 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         task_id="series_transform",
         project_id=PROJECT_ID,
         region="asia-southeast1",
-        job_name="series",
         job={
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
@@ -61,7 +59,6 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         task_id="dimension_transform",
         project_id=PROJECT_ID,
         region="asia-southeast1",
-        job_name="series",
         job={
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
