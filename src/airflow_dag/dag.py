@@ -70,4 +70,4 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         task_id="delete_cluster", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
     )
 
-    extract >> [dimension_task, movies_task, series_task] >> delete_cluster
+    extract >> create_cluster >> [dimension_task, movies_task, series_task] >> delete_cluster
