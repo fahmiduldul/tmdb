@@ -10,6 +10,30 @@ CLUSTER_NAME = "tmdb"
 REGION = "us-central1"
 
 
+def get_files_in_gcs(bucket: str, prefix: str, extension: str):
+    from google.cloud import storage
+    gcs_client = storage.Client()
+
+    res = []
+    for blob in gcs_client.list_blobs(bucket, prefix=prefix, ):
+        suffix = blob.name.split(".")[-1]
+        if suffix == extension:
+            res.append(f"gs://{bucket}/{blob.name}")
+
+    return res
+
+def load_to_bq(bucket: str, uri: str, table:str):
+    from google.cloud import bigquery
+    client = bigquery.Client()
+    TABLE_ID = f"{PROJECT_ID}.de_porto.{table}"
+    config = bigquery.LoadJobConfig(source_format=bigquery.SourceFormat.PARQUET)
+
+    file = get_files_in_gcs(bucket, uri, "parquet")
+    for uri in file:
+        job = client.load_table_from_uri(uri, TABLE_ID, job_config=config)
+        job.result()
+
+
 with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
 
     extract = DummyOperator(task_id="extract")
@@ -70,5 +94,31 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         task_id="delete_cluster", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
     )
 
+    load_movies = PythonOperator(
+        task_id="load_movies",
+        python_callable=load_to_bq,
+        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/movies.parquet", "table": "movies"}
+    )
+
+    load_series = PythonOperator(
+        task_id="load_series",
+        python_callable=load_to_bq,
+        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/series.parquet", "table": "series"}
+    )
+
+    load_companies = PythonOperator(
+        task_id="load_companies",
+        python_callable=load_to_bq,
+        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/companies.parquet", "table": "companies"}
+    )
+
+    load_genres = PythonOperator(
+        task_id="load_genres",
+        python_callable=load_to_bq,
+        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/genres.parquet", "table": "genres"}
+    )
 
     extract >> create_cluster >> [dimension_task, movies_task, series_task] >> delete_cluster
+    dimension_task >> [load_companies, load_genres]
+    movies_task >> load_movies
+    series_task >> load_series
