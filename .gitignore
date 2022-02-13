@@ -115,3 +115,6 @@ dmypy.json
 
 **/volumes/
 **/payload/
+./bin/
+./lib/
+./include/
