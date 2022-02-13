@@ -35,6 +35,8 @@ def load_to_bq(bucket: str, uri: str, table:str):
 
 with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
 
+    # currently, there is problem extracting the file here
+    # use DummyOperator temporarily
     extract = DummyOperator(task_id="extract")
 
     create_cluster = DataprocCreateClusterOperator(
