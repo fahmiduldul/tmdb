@@ -5,18 +5,18 @@ from airflow.providers.google.cloud.operators.dataproc import DataprocCreateBatc
 import datetime as dt
 from google.cloud.dataproc_v1.types import PySparkBatch, EnvironmentConfig
 
-
 PROJECT_ID = "de-porto"
 
-MOVIES_BATCH_CONFIG = {
-    "main_python_file_uri": "gs://de-porto/qoala/script/movies_table.py"
-}
+def load_to_bq(**kwargs):
+    ti = kwargs["ti"]
 
-with DAG("tmdb", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
 
-    extract = DummyOperator(dag="dummy")
+with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
+
+    extract = DummyOperator(task_id="extract")
 
     movies_task = DataprocCreateBatchOperator(
+        task_id="movies_transform",
         project_id=PROJECT_ID,
         region="asia-southeast1",
         batch_id=f"movies-{dt.datetime.now().timestamp()}",
@@ -26,6 +26,7 @@ with DAG("tmdb", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
     )
 
     series_task = DataprocCreateBatchOperator(
+        task_id="series_transform",
         project_id=PROJECT_ID,
         region="asia-southeast1",
         batch_id=f"movies-{dt.datetime.now().timestamp()}",
@@ -35,6 +36,7 @@ with DAG("tmdb", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
     )
 
     dimension_task = DataprocCreateBatchOperator(
+        task_id="dimension_transform",
         project_id=PROJECT_ID,
         region="asia-southeast1",
         batch_id=f"movies-{dt.datetime.now().timestamp()}",
