@@ -1,0 +1,14 @@
+FROM python:3.8.12-bullseye
+
+WORKDIR /app
+
+COPY requirement.txt .
+
+RUN pip install -r requirement.txt
+
+COPY . .
+
+EXPOSE 8080
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+
