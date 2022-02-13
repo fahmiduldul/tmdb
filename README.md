@@ -12,7 +12,8 @@ Please have a look to [corresponding notebook](src/notebook/tmdb.ipynb)
 I recommend open it via Google Colab. Reference: [pipeline code](src/task/transform)
 3. Load transformed data to BigQuery data warehouse.
 Reference: [code L96-118](src/airflow_dag/dag.py)
-4. Orchestrate all the task using Apache Airflow with the Dag shown below
+4. Orchestrate all the task using Apache Airflow with the Dag shown below.
+Reference: [airflow code](src/airflow_dag/dag.py)
 ![img.png](asset/dag_graph.png)
 > Note: Currently the code in unoptimized and there are some repetitive code.
 > I'm going to fix it tomorrow.
