@@ -1,3 +1,5 @@
 fastapi==0.73.0
 uvicorn[standard]==0.17.4
 kaggle==1.5.12
+google-cloud-bigquery
+google-cloud-storage
