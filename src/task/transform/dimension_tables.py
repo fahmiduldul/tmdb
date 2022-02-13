@@ -6,8 +6,8 @@ spark = SparkSession.builder.appName("tmdb") \
     .config("spark.driver.maxResultSize", "4g") \
     .getOrCreate()
 
-df_movies = spark.read.json("gs://de-porto/qoala/movies_joined.json")
-df_series = spark.read.json("gs://de-porto/qoala/series_joined.json")
+df_movies = spark.read.json("gs://de-porto/qoala/raw_data/movies_joined.json")
+df_series = spark.read.json("gs://de-porto/qoala/raw_data/series_joined.json")
 
 # Transform genres and place in GCS
 df_series_gen = df_series.select(F.explode(F.col("genres"))).select(F.col("col.*")) \
