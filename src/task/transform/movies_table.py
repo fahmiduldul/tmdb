@@ -6,7 +6,7 @@ spark = SparkSession.builder.appName("tmdb") \
     .config("spark.driver.maxResultSize", "4g") \
     .getOrCreate()
 
-df_movies = spark.read.json("gs://de-porto/qoala/movies_joined.json")
+df_movies = spark.read.json("gs://de-porto/qoala/raw_data/movies_joined.json")
 
 initial_columns = df_movies.schema.names
 
