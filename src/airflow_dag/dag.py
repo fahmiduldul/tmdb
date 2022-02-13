@@ -6,7 +6,7 @@ import datetime as dt
 from google.cloud.dataproc_v1.types import PySparkBatch, EnvironmentConfig
 
 PROJECT_ID = "de-porto"
-CLUSTER_NAME = "tmdb_cluster"
+CLUSTER_NAME = "tmdb"
 REGION = "us-central1"
 
 
