@@ -3,7 +3,6 @@ from airflow.operators.python import PythonOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.providers.google.cloud.operators.dataproc import DataprocSubmitJobOperator, DataprocCreateClusterOperator, DataprocDeleteClusterOperator
 import datetime as dt
-from google.cloud.dataproc_v1.types import PySparkBatch, EnvironmentConfig
 
 PROJECT_ID = "de-porto"
 CLUSTER_NAME = "tmdb"
