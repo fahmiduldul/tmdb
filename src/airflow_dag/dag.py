@@ -5,6 +5,7 @@ from airflow.providers.google.cloud.operators.dataproc import DataprocSubmitJobO
 import datetime as dt
 
 PROJECT_ID = "de-porto"
+DATASET_ID = 'tmdb'
 CLUSTER_NAME = "tmdb"
 REGION = "us-central1"
 
@@ -21,16 +22,26 @@ def get_files_in_gcs(bucket: str, prefix: str, extension: str):
 
     return res
 
-def load_to_bq(bucket: str, uri: str, table:str):
+def load_to_bq(bucket: str, uri: str, project_id: str, dataset_id: str, table:str):
     from google.cloud import bigquery
     client = bigquery.Client()
-    TABLE_ID = f"{PROJECT_ID}.de_porto.{table}"
+    TABLE_ID = f"{project_id}.{dataset_id}.{table}"
     config = bigquery.LoadJobConfig(source_format=bigquery.SourceFormat.PARQUET)
 
     file = get_files_in_gcs(bucket, uri, "parquet")
     for uri in file:
         job = client.load_table_from_uri(uri, TABLE_ID, job_config=config)
         job.result()
+
+
+def create_load_args(table_name: str):
+    return {
+        "bucket": PROJECT_ID,
+        "uri": "qoala/movies.parquet",
+        "project_id": PROJECT_ID,
+        "dataset_id": DATASET_ID,
+        "table": table_name
+    }
 
 
 with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
@@ -98,25 +109,25 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     load_movies = PythonOperator(
         task_id="load_movies",
         python_callable=load_to_bq,
-        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/movies.parquet", "table": "movies"}
+        op_kwargs=create_load_args("movies")
     )
 
     load_series = PythonOperator(
         task_id="load_series",
         python_callable=load_to_bq,
-        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/series.parquet", "table": "series"}
+        op_kwargs=create_load_args("series")
     )
 
     load_companies = PythonOperator(
         task_id="load_companies",
         python_callable=load_to_bq,
-        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/companies.parquet", "table": "companies"}
+        op_kwargs=create_load_args("companies")
     )
 
     load_genres = PythonOperator(
         task_id="load_genres",
         python_callable=load_to_bq,
-        op_kwargs={"bucket": PROJECT_ID, "uri": "qoala/genres.parquet", "table": "genres"}
+        op_kwargs=create_load_args("genres")
     )
 
     extract >> create_cluster >> [dimension_task, movies_task, series_task] >> delete_cluster
