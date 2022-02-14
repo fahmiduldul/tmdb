@@ -37,7 +37,7 @@ def load_to_bq(bucket: str, uri: str, project_id: str, dataset_id: str, table:st
 def create_load_args(table_name: str):
     return {
         "bucket": PROJECT_ID,
-        "uri": "qoala/movies.parquet",
+        "uri": f"qoala/{table_name}.parquet",
         "project_id": PROJECT_ID,
         "dataset_id": DATASET_ID,
         "table": table_name
@@ -69,68 +69,42 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         }
     )
 
-    movies_task = DataprocSubmitJobOperator(
-        task_id="movies_transform",
-        project_id=PROJECT_ID,
-        region=REGION,
-        job={
-            "reference": {"project_id": PROJECT_ID},
-            "placement": {"cluster_name": CLUSTER_NAME},
-            "pyspark_job": {"main_python_file_uri": "gs://de-porto/qoala/script/movies_table.py"},
-        }
-    )
-
-    series_task = DataprocSubmitJobOperator(
-        task_id="series_transform",
-        project_id=PROJECT_ID,
-        region=REGION,
-        job={
-            "reference": {"project_id": PROJECT_ID},
-            "placement": {"cluster_name": CLUSTER_NAME},
-            "pyspark_job": {"main_python_file_uri": "gs://de-porto/qoala/script/series_table.py"},
-        }
-    )
-
-    dimension_task = DataprocSubmitJobOperator(
-        task_id="dimension_transform",
-        project_id=PROJECT_ID,
-        region=REGION,
-        job={
-            "reference": {"project_id": PROJECT_ID},
-            "placement": {"cluster_name": CLUSTER_NAME},
-            "pyspark_job": {"main_python_file_uri": "gs://de-porto/qoala/script/dimension_tables.py"},
-        }
-    )
-
     delete_cluster = DataprocDeleteClusterOperator(
         task_id="delete_cluster", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
     )
 
-    load_movies = PythonOperator(
-        task_id="load_movies",
-        python_callable=load_to_bq,
-        op_kwargs=create_load_args("movies")
-    )
+    transform_task = {}
+    transform_jobs = ["dimension", "series", "movies"]
+    for transform_job in transform_jobs:
+        job = DataprocSubmitJobOperator(
+            task_id=f"{transform_job}_transform",
+            project_id=PROJECT_ID,
+            region=REGION,
+            job={
+                "reference": {"project_id": PROJECT_ID},
+                "placement": {"cluster_name": CLUSTER_NAME},
+                "pyspark_job": {"main_python_file_uri": f"gs://de-porto/qoala/script/{transform_job}_tables.py"},
+            }
+        )
 
-    load_series = PythonOperator(
-        task_id="load_series",
-        python_callable=load_to_bq,
-        op_kwargs=create_load_args("series")
-    )
+        create_cluster >> job >> delete_cluster
+        transform_task[transform_job] = job
 
-    load_companies = PythonOperator(
-        task_id="load_companies",
-        python_callable=load_to_bq,
-        op_kwargs=create_load_args("companies")
-    )
+    load_jobs = [
+        {"table": "movies", "depend_on": transform_task["movies"]},
+        {"table": "series", "depend_on": transform_task["series"]},
+        {"table": "genres", "depend_on": transform_task["dimension"]},
+        {"table": "companies", "depend_on": transform_task["dimension"]}
+    ]
 
-    load_genres = PythonOperator(
-        task_id="load_genres",
-        python_callable=load_to_bq,
-        op_kwargs=create_load_args("genres")
-    )
+    for load_job in load_jobs:
+        table_name = load_job["table"]
+        job = PythonOperator(
+            task_id=f"load_{table_name}",
+            python_callable=load_to_bq,
+            op_kwargs=create_load_args(table_name)
+        )
 
-    extract >> create_cluster >> [dimension_task, movies_task, series_task] >> delete_cluster
-    dimension_task >> [load_companies, load_genres]
-    movies_task >> load_movies
-    series_task >> load_series
+        load_job["depend_on"] >> job
+
+    extract >> create_cluster
