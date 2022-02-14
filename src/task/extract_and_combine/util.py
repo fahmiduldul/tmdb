@@ -8,7 +8,7 @@ def combine_all_file(dir: str, out: str):
     joined_file = open(out, "a+")
     file_paths = get_files_in_dir(dir)
 
-    for file_path in file_paths:
+    for file_path in file_paths[:100]:
         with open(join(dir, file_path)) as f:
             payload = f.read()
             joined_file.write(payload+'\n')
