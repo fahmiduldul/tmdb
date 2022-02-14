@@ -40,3 +40,9 @@ def read_root():
     sp.run(["rm", "-rf", "./payload"])
 
     return {"status": "success"}
+
+@app.post("/debug")
+def read_root():
+    sp.run(["gcloud", "auth", "list"])
+
+    return "test"
