@@ -11,12 +11,10 @@ with open('kaggle.json') as f:
     os.environ['KAGGLE_USERNAME'] = kaggle_cred["username"]
     os.environ['KAGGLE_KEY'] = kaggle_cred["key"]
 
-
 app = FastAPI()
 
 @app.post("/extract")
 def read_root():
-    print(os.environ["KAGGLE_USERNAME"])
     sp.run(["mkdir", "payload"])
     sp.run(["kaggle", "datasets", "download", "edgartanaka1/tmdb-movies-and-series", "-p", "./payload"])
     sp.run(["unzip", "./payload/tmdb-movies-and-series.zip"])
@@ -36,6 +34,5 @@ def read_root():
         dir = join("./payload", filename)
         blob = bucket.blob(join("qoala", filename))
         blob.upload_from_filename(dir)
-
 
     return {"status": "success"}
