@@ -26,12 +26,12 @@ def rename_columns(df, current_cols, new_cols):
 ## Transform and load genres dimenstion table
 df_series_gen = rename_columns(
         explode_and_spread_column(df_series, "genres"),
-        ["id", "name"], ["series_id", "movies_name"]
+        ["id", "name"], ["series_id", "series_genre"]
     ).distinct()
 
 df_movies_gen = rename_columns(
         explode_and_spread_column(df_movies, "genres"),
-        ["id", "name"], ["movies_id", "movies_name"]
+        ["id", "name"], ["movies_id", "movies_genre"]
     ).distinct()
 
 genre_comparison = df_series_gen \
@@ -48,12 +48,12 @@ dwh_genres.write.parquet("gs://de-porto/qoala/genres.parquet")
 ## Transform and load production_companies dimenstion table
 df_series_com = rename_columns(
         explode_and_spread_column(df_series, "production_companies"),
-        ["id", "name", "origin_country"], ["series_id", "series_name", "series_origin_country"]
+        ["id", "name", "origin_country"], ["series_id", "series_company", "series_origin_country"]
     ).distinct()
 
 df_movies_com = rename_columns(
         explode_and_spread_column(df_movies, "production_companies"),
-        ["id", "name", "origin_country"], ["movies_id", "movies_name", "movies_origin_country"]
+        ["id", "name", "origin_country"], ["movies_id", "movies_company", "movies_origin_country"]
     ).distinct()
 
 companies_comparison = df_series_com \
