@@ -50,6 +50,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     # use DummyOperator temporarily
     extract = DummyOperator(task_id="extract")
 
+    ## create and delete spark cluster
     create_cluster = DataprocCreateClusterOperator(
         task_id="create_cluster",
         project_id=PROJECT_ID,
@@ -77,6 +78,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         trigger_rule="all_done"
     )
 
+    ## tasks to transform data from raw file
     transform_task = {}
     transform_jobs = ["dimension", "series", "movies"]
     for transform_job in transform_jobs:
@@ -94,13 +96,13 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         create_cluster >> job >> delete_cluster
         transform_task[transform_job] = job
 
+    ## tasks to load parquet file to bigquery
     load_jobs = [
         {"table": "movies", "depend_on": transform_task["movies"]},
         {"table": "series", "depend_on": transform_task["series"]},
         {"table": "genres", "depend_on": transform_task["dimension"]},
         {"table": "companies", "depend_on": transform_task["dimension"]}
     ]
-
     for load_job in load_jobs:
         table_name = load_job["table"]
         job = PythonOperator(
