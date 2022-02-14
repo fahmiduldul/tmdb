@@ -83,7 +83,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
             job={
                 "reference": {"project_id": PROJECT_ID},
                 "placement": {"cluster_name": CLUSTER_NAME},
-                "pyspark_job": {"main_python_file_uri": f"gs://de-porto/qoala/script/{transform_job}_tables.py"},
+                "pyspark_job": {"main_python_file_uri": f"gs://de-porto/qoala/script/{transform_job}_table.py"},
             }
         )
 
