@@ -22,11 +22,13 @@ def read_root():
     sp.run(["mv", "-f", "./series/series", "./payload/series"])
     sp.run(["mv", "-f", "./movies/movies", "./payload/movies"])
 
+    print("joining files")
     for folder in ["series", "movies"]:
         dir = join("./payload", folder)
         out_file = join("./payload", folder+"_joined.json")
         util.combine_all_file(dir, out_file)
 
+    print("uploading files")
     client = storage.Client()
     bucket = client.bucket("de-porto")
     for folder in ["series", "movies"]:
