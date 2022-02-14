@@ -8,7 +8,6 @@ PROJECT_ID = "de-porto"
 DATASET_ID = 'tmdb'
 CLUSTER_NAME = "tmdb"
 REGION = "us-central1"
-EXTRACT_ENDPOINT = "http://35.224.18.168:8080/extract"
 
 def get_files_in_gcs(bucket: str, prefix: str, extension: str):
     from google.cloud import storage
@@ -48,7 +47,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
 
     extract = SimpleHttpOperator(
         task_id="extract",
-        endpoint=EXTRACT_ENDPOINT
+        endpoint="extract"
     )
 
     ## create and delete spark cluster
