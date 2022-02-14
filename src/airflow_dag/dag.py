@@ -1,6 +1,6 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.operators.dummy import DummyOperator
+from airflow.providers.http.operators.http import SimpleHttpOperator
 from airflow.providers.google.cloud.operators.dataproc import DataprocSubmitJobOperator, DataprocCreateClusterOperator, DataprocDeleteClusterOperator
 import datetime as dt
 
@@ -8,7 +8,7 @@ PROJECT_ID = "de-porto"
 DATASET_ID = 'tmdb'
 CLUSTER_NAME = "tmdb"
 REGION = "us-central1"
-
+EXTRACT_ENDPOINT = "http://34.71.63.98:8080/extract"
 
 def get_files_in_gcs(bucket: str, prefix: str, extension: str):
     from google.cloud import storage
@@ -46,9 +46,10 @@ def create_load_args(table_name: str):
 
 with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1), catchup=False) as dag:
 
-    # currently, there is problem extracting the file here
-    # use DummyOperator temporarily
-    extract = DummyOperator(task_id="extract")
+    extract = SimpleHttpOperator(
+        task_id="extract",
+        endpoint=EXTRACT_ENDPOINT
+    )
 
     ## create and delete spark cluster
     create_cluster = DataprocCreateClusterOperator(
