@@ -8,7 +8,7 @@ PROJECT_ID = "de-porto"
 DATASET_ID = 'tmdb'
 CLUSTER_NAME = "tmdb"
 REGION = "us-central1"
-EXTRACT_ENDPOINT = "http://34.71.63.98:8080/extract"
+EXTRACT_ENDPOINT = "http://35.224.18.168:8080/extract"
 
 def get_files_in_gcs(bucket: str, prefix: str, extension: str):
     from google.cloud import storage
