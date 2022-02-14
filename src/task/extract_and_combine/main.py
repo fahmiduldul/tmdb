@@ -35,4 +35,6 @@ def read_root():
         blob = bucket.blob(join("qoala", filename))
         blob.upload_from_filename(dir)
 
+    sp.run(["rm", "-rf", "./payload"])
+
     return {"status": "success"}
