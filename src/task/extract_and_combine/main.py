@@ -20,7 +20,7 @@ def read_root():
     sp.run(["unzip", "./payload/tmdb-movies-and-series.zip"])
     sp.run(["rm", "-rf", "./payload/tmdb-movies-and-series.zip"])
     sp.run(["mv", "-f", "./series/series", "./payload/series"])
-    sp.run(["mv", "-f", "./movies/series", "./payload/movies"])
+    sp.run(["mv", "-f", "./movies/movies", "./payload/movies"])
 
     for folder in ["series", "movies"]:
         dir = join("./payload", folder)
