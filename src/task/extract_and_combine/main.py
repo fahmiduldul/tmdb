@@ -3,13 +3,16 @@ import subprocess as sp
 import os
 from os.path import join
 import util
+import json
 from google.cloud import storage
-from google.cloud import bigquery
+
+with open('kaggle.json') as f:
+    kaggle_cred = json.load(f)
+    os.environ['KAGGLE_USERNAME'] = kaggle_cred["username"]
+    os.environ['KAGGLE_KEY'] = kaggle_cred["key"]
+
 
 app = FastAPI()
-
-os.environ['KAGGLE_USERNAME'] = "fahmiduldul"
-os.environ['KAGGLE_KEY'] = "4a55c2dfac7f7191903a5abc5a4e8487"
 
 @app.post("/extract")
 def read_root():
