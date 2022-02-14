@@ -34,7 +34,7 @@ def read_root():
     for folder in ["series", "movies"]:
         filename = folder+"_joined.json"
         dir = join("./payload", filename)
-        blob = bucket.blob(join("qoala", filename))
+        blob = bucket.blob(join("qoala", "raw_data", filename))
         blob.upload_from_filename(dir)
 
     sp.run(["rm", "-rf", "./payload"])
