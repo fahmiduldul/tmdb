@@ -58,19 +58,23 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         cluster_config={
             "master_config": {
                 "num_instances": 1,
-                "machine_type_uri": "n1-standard-2",
+                "machine_type_uri": "n2d-standard-2",
                 "disk_config": {"boot_disk_type": "pd-standard", "boot_disk_size_gb": 500},
             },
             "worker_config": {
                 "num_instances": 3,
-                "machine_type_uri": "n1-standard-2",
+                "machine_type_uri": "n2d-standard-2",
                 "disk_config": {"boot_disk_type": "pd-standard", "boot_disk_size_gb": 500},
             },
         }
     )
 
     delete_cluster = DataprocDeleteClusterOperator(
-        task_id="delete_cluster", project_id=PROJECT_ID, cluster_name=CLUSTER_NAME, region=REGION
+        task_id="delete_cluster",
+        project_id=PROJECT_ID,
+        cluster_name=CLUSTER_NAME,
+        region=REGION,
+        trigger_rule="all_done"
     )
 
     transform_task = {}
