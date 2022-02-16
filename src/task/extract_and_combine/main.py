@@ -37,6 +37,7 @@ def extract_to_gcs():
         blob.upload_from_filename(dir)
 
     sp.run(["rm", "-rf", "./payload"])
+    print("uploading finished")
 
 @app.post("/extract")
 def extract(background_task: BackgroundTasks):
