@@ -1,4 +1,5 @@
 from airflow import DAG
+from airflow.utils.task_group import TaskGroup
 from airflow.operators.python import PythonOperator
 from airflow.providers.http.operators.http import SimpleHttpOperator
 from airflow.providers.google.cloud.operators.dataproc import DataprocSubmitJobOperator, DataprocCreateClusterOperator, DataprocDeleteClusterOperator
@@ -51,16 +52,14 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         endpoint="extract"
     )
 
-    gcs_sensors = []
-    for file_ in ["movies_joined.json", "series_joined.json"]:
-        job = GCSObjectUpdateSensor(
-            task_id=f"wait_{file_.split('.')[0]}",
-            bucket=PROJECT_ID,
-            object=f"qoala/raw_data/{file_}"
-        )
-        gcs_sensors.append(job)
+    with TaskGroup(group_id="sensors") as sensors:
+        for file_ in ["movies_joined.json", "series_joined.json"]:
+            job = GCSObjectUpdateSensor(
+                task_id=f"wait_{file_.split('.')[0]}",
+                bucket=PROJECT_ID,
+                object=f"qoala/raw_data/{file_}"
+            )
 
-        extract >> job
 
     ## create and delete spark cluster
     create_cluster = DataprocCreateClusterOperator(
@@ -91,39 +90,28 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     )
 
     ## tasks to transform data from raw file
-    transform_task = {}
-    transform_jobs = ["dimension", "series", "movies"]
-    for transform_job in transform_jobs:
-        job = DataprocSubmitJobOperator(
-            task_id=f"{transform_job}_transform",
-            project_id=PROJECT_ID,
-            region=REGION,
-            job={
-                "reference": {"project_id": PROJECT_ID},
-                "placement": {"cluster_name": CLUSTER_NAME},
-                "pyspark_job": {"main_python_file_uri": f"gs://de-porto/qoala/script/{transform_job}_table.py"},
-            }
-        )
-
-        [*gcs_sensors] >> job
-        create_cluster >> job >> delete_cluster
-        transform_task[transform_job] = job
+    with TaskGroup(group_id="transforms") as transforms:
+        transform_jobs = ["dimension", "series", "movies"]
+        for transform_job in transform_jobs:
+            job = DataprocSubmitJobOperator(
+                task_id=f"{transform_job}_transform",
+                project_id=PROJECT_ID,
+                region=REGION,
+                job={
+                    "reference": {"project_id": PROJECT_ID},
+                    "placement": {"cluster_name": CLUSTER_NAME},
+                    "pyspark_job": {"main_python_file_uri": f"gs://de-porto/qoala/script/{transform_job}_table.py"},
+                }
+            )
 
     ## tasks to load parquet file to bigquery
-    load_jobs = [
-        {"table": "movies", "depend_on": transform_task["movies"]},
-        {"table": "series", "depend_on": transform_task["series"]},
-        {"table": "genres", "depend_on": transform_task["dimension"]},
-        {"table": "companies", "depend_on": transform_task["dimension"]}
-    ]
-    for load_job in load_jobs:
-        table_name = load_job["table"]
-        job = PythonOperator(
-            task_id=f"load_{table_name}",
-            python_callable=load_to_bq,
-            op_kwargs=create_load_args(table_name)
-        )
+    with TaskGroup(group_id="loads") as loads:
+        filenames = ["movies", "series", "genres", "companies"]
+        for filename in filenames:
+            job = PythonOperator(
+                task_id=f"load_{filename}",
+                python_callable=load_to_bq,
+                op_kwargs=create_load_args(filename)
+            )
 
-        load_job["depend_on"] >> job
-
-    extract >> create_cluster
+    extract >> [create_cluster, sensors] >> transforms >> [delete_cluster, loads]
