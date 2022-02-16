@@ -15,11 +15,6 @@ Reference: [code L96-118](src/airflow_dag/dag.py)
 4. Orchestrate all the task using Apache Airflow with the Dag shown below.
 Reference: [airflow code](src/airflow_dag/dag.py)
 ![img.png](asset/dag_graph.png)
-> Note: Currently the code in unoptimized and there are some repetitive code.
-> I'm going to fix it tomorrow.
-> 
-> Note: There is still problem in extracting and joining files directly from kaggle.
-> I still use implement `DummyOperator` in airflow DAG
 
 ## Data Warehouse
 Below you can find some of the screenshot of data warehouse of `movies` table.
