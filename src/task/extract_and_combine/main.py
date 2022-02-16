@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 import subprocess as sp
 import os
 from os.path import join
@@ -13,8 +13,7 @@ with open('kaggle.json') as f:
 
 app = FastAPI()
 
-@app.post("/extract")
-def read_root():
+def extract_to_gcs():
     sp.run(["mkdir", "payload"])
     sp.run(["kaggle", "datasets", "download", "edgartanaka1/tmdb-movies-and-series", "-p", "./payload"])
     sp.run(["unzip", "./payload/tmdb-movies-and-series.zip"])
@@ -39,10 +38,13 @@ def read_root():
 
     sp.run(["rm", "-rf", "./payload"])
 
+@app.post("/extract")
+def extract(background_task: BackgroundTasks):
+    background_task.add_task(extract_to_gcs)
     return {"status": "success"}
 
 @app.post("/debug")
-def read_root():
+def debug():
     sp.run(["gcloud", "auth", "list"])
 
     return "test"
