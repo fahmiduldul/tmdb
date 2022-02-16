@@ -58,7 +58,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
             bucket=PROJECT_ID,
             object=f"qoala/{file_}"
         )
-        gcs_sensors.append(file_)
+        gcs_sensors.append(job)
 
         extract >> job
 
