@@ -56,7 +56,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         job = GCSObjectUpdateSensor(
             task_id=f"wait_{file_.split('.')[0]}",
             bucket=PROJECT_ID,
-            object=f"qoala/{file_}"
+            object=f"qoala/raw_data/{file_}"
         )
         gcs_sensors.append(job)
 
