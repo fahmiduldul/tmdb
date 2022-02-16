@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.http.operators.http import SimpleHttpOperator
 from airflow.providers.google.cloud.operators.dataproc import DataprocSubmitJobOperator, DataprocCreateClusterOperator, DataprocDeleteClusterOperator
+from airflow.providers.google.cloud.sensors.gcs import GCSObjectUpdateSensor
 import datetime as dt
 
 PROJECT_ID = "de-porto"
@@ -50,6 +51,17 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
         endpoint="extract"
     )
 
+    gcs_sensors = []
+    for file_ in ["movie_joined.json", "series_joined.json"]:
+        job = GCSObjectUpdateSensor(
+            task_id=f"wait_{file_.split('.')[0]}",
+            bucket=PROJECT_ID,
+            object=f"qoala/{file_}"
+        )
+        gcs_sensors.append(file_)
+
+        extract >> job
+
     ## create and delete spark cluster
     create_cluster = DataprocCreateClusterOperator(
         task_id="create_cluster",
@@ -93,6 +105,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
             }
         )
 
+        [*gcs_sensors] >> job
         create_cluster >> job >> delete_cluster
         transform_task[transform_job] = job
 
