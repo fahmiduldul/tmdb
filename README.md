@@ -1,4 +1,4 @@
-# TMDB ETL Pipeline datasets
+# TMDB Dataset ETL Pipeline
  
 In this repo I create ETL pipeline from 
 [tmdb kaggle dataset](https://www.kaggle.com/edgartanaka1/tmdb-movies-and-series).
