@@ -52,7 +52,7 @@ with DAG("tmdb", schedule_interval="@weekly", start_date=dt.datetime(2022, 1, 1)
     )
 
     gcs_sensors = []
-    for file_ in ["movie_joined.json", "series_joined.json"]:
+    for file_ in ["movies_joined.json", "series_joined.json"]:
         job = GCSObjectUpdateSensor(
             task_id=f"wait_{file_.split('.')[0]}",
             bucket=PROJECT_ID,
