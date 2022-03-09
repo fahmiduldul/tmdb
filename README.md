@@ -4,6 +4,11 @@ In this repo I create ETL pipeline from
 [tmdb kaggle dataset](https://www.kaggle.com/edgartanaka1/tmdb-movies-and-series).
 This datasets consists of a million movies and hundreds thousands of series reviews.
 
+This pipeline built using:
+- Apache Airflow
+- Apache Spark
+- Google Cloud (BigQuery, Dataproc & Compute Engine)
+
 ## Pipeline Overview
 1. Extract data from kaggle dataset, and combine files into single one for each dataset.
 Reference: [corresponding code](src/task/extract_and_combine)
